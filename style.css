@@ -1773,6 +1773,13 @@ section {
   :root, [data-color-scheme="dark"], [data-color-scheme="light"] {
     --bg-attachment: scroll !important;
   }
+  
+  /* Optimize heavy background animations on mobile */
+  .color-blob {
+    filter: blur(40px);
+    animation: none !important;
+    opacity: 0.3;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1814,7 +1821,8 @@ section {
 .animate-on-scroll {
   opacity: 0;
   transform: translateY(30px);
-  transition: all 0.8s var(--ease-standard);
+  transition: opacity 0.8s var(--ease-standard), transform 0.8s var(--ease-standard);
+  will-change: opacity, transform;
 }
 
 .animate-on-scroll.animate {
