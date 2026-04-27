@@ -1666,7 +1666,11 @@ section {
     left: -100%;
     top: 70px;
     flex-direction: column;
-    background-color: var(--color-surface);
+    background-color: var(--color-background);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
     width: 100%;
     text-align: center;
     transition: var(--duration-normal) var(--ease-standard);
@@ -1763,6 +1767,11 @@ section {
 
   .modal-body {
     padding: var(--space-24);
+  }
+
+  /* Disable fixed background on mobile for better scroll performance */
+  :root, [data-color-scheme="dark"], [data-color-scheme="light"] {
+    --bg-attachment: scroll !important;
   }
 }
 
