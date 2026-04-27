@@ -126,11 +126,13 @@ function toggleMobileMenu() {
 // Scroll Effects
 function initializeScrollEffects() {
   window.addEventListener('scroll', () => {
-    // Navbar background on scroll
+    // Navbar background on scroll handled by CSS, we just add a class
     if (window.scrollY > 50) {
-      navbar.style.background = 'rgba(var(--color-bg-1), 0.98)';
+      navbar.classList.add('scrolled');
+      navbar.style.background = ''; // Clear inline styles
     } else {
-      navbar.style.background = 'rgba(var(--color-bg-1), 0.95)';
+      navbar.classList.remove('scrolled');
+      navbar.style.background = ''; // Clear inline styles
     }
     
     // Update active nav link
@@ -275,38 +277,58 @@ function handleContactFormSubmit(e) {
   
   // Get form data
   const formData = new FormData(contactForm);
-  const data = {
-    name: formData.get('name'),
-    email: formData.get('email'),
-    subject: formData.get('subject'),
-    message: formData.get('message')
-  };
+  const data = Object.fromEntries(formData);
   
   // Validate form
   if (!validateForm(data)) {
     return;
   }
   
-  // Simulate form submission
+  // Form submission via Web3Forms
   const submitButton = contactForm.querySelector('button[type="submit"]');
   const originalText = submitButton.textContent;
   
   submitButton.textContent = 'Sending...';
   submitButton.disabled = true;
-  
-  // Simulate API call
-  setTimeout(() => {
-    submitButton.textContent = 'Message Sent!';
-    submitButton.style.background = 'var(--color-success)';
-    
-    // Reset form after 2 seconds
-    setTimeout(() => {
-      contactForm.reset();
-      submitButton.textContent = originalText;
-      submitButton.disabled = false;
-      submitButton.style.background = '';
-    }, 2000);
-  }, 1000);
+
+  fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+      },
+      body: JSON.stringify(data)
+  })
+  .then(async (response) => {
+      let json = await response.json();
+      if (response.status == 200) {
+          submitButton.textContent = 'Message Sent!';
+          submitButton.style.background = 'var(--color-success)';
+          setTimeout(() => {
+            contactForm.reset();
+            submitButton.textContent = originalText;
+            submitButton.disabled = false;
+            submitButton.style.background = '';
+          }, 3000);
+      } else {
+          console.log(response);
+          submitButton.textContent = 'Failed to Send';
+          submitButton.style.background = 'var(--color-error)';
+          setTimeout(() => {
+            submitButton.textContent = originalText;
+            submitButton.disabled = false;
+            submitButton.style.background = '';
+          }, 3000);
+      }
+  })
+  .catch(error => {
+      console.log(error);
+      submitButton.textContent = 'Error occurred';
+      setTimeout(() => {
+        submitButton.textContent = originalText;
+        submitButton.disabled = false;
+      }, 3000);
+  });
 }
 
 function validateForm(data) {
@@ -457,95 +479,3 @@ window.addEventListener('scroll', () => {
     hero.style.transform = `translateY(${rate}px)`;
   }
 });
-
-// Intersection Observer for fade-in animations
-const fadeInObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.style.opacity = '1';
-      entry.target.style.transform = 'translateY(0)';
-    }
-  });
-}, {
-  threshold: 0.1,
-  rootMargin: '0px 0px -50px 0px'
-});
-
-// Observe elements for fade-in animation
-document.querySelectorAll('.project-card, .timeline-item, .cert-card, .stat').forEach(el => {
-  el.style.opacity = '0';
-  el.style.transform = 'translateY(30px)';
-  el.style.transition = 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)';
-  fadeInObserver.observe(el);
-});
-
-// Add hover effects to social links
-document.querySelectorAll('.social-link').forEach(link => {
-  link.addEventListener('mouseenter', function() {
-    this.style.transform = 'translateY(-3px) scale(1.1)';
-  });
-  
-  link.addEventListener('mouseleave', function() {
-    this.style.transform = 'translateY(0) scale(1)';
-  });
-});
-
-// Add typing effect to hero title (optional enhancement)
-function typeWriter(element, text, speed = 100) {
-  let i = 0;
-  element.innerHTML = '';
-  
-  function type() {
-    if (i < text.length) {
-      element.innerHTML += text.charAt(i);
-      i++;
-      setTimeout(type, speed);
-    }
-  }
-  
-  type();
-}
-
-// Smooth reveal animation for sections
-const revealObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add('revealed');
-    }
-  });
-}, {
-  threshold: 0.15
-});
-
-document.querySelectorAll('section').forEach(section => {
-  section.classList.add('reveal');
-  revealObserver.observe(section);
-});
-
-// Add CSS for reveal animation
-const style = document.createElement('style');
-style.textContent = `
-  .reveal {
-    opacity: 0;
-    transform: translateY(50px);
-    transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  
-  .reveal.revealed {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  
-  .nav-link.active {
-    color: var(--color-primary);
-  }
-  
-  .nav-link.active::after {
-    width: 100%;
-  }
-  
-  .loaded .hero-content {
-    animation: fadeInUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-`;
-document.head.appendChild(style);
